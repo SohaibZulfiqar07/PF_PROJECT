@@ -3,8 +3,8 @@
 A deterministic, text-based rescue and exploration game written in C++17 (no OOP classes).
 Course project for **CS-1002: Programming Fundamentals (AI & DS)**.
 
-**Authors:** `<Name 1> (<RollNo1>)`, `<Name 2> (<RollNo2>)`
-**Release tag:** `v1.0.<RollNo>`
+**Authors:** `Sohaib Zulfiqar 26I-0145`, `Riyyan Faisal 26I-0051`
+**Release tag:** `v1.0.1`
 
 ---
 
