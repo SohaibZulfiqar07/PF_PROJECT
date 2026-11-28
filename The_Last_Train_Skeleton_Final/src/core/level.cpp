@@ -12,8 +12,103 @@ bool loadBuildingMap(const char* filename,
                      char horizontalConn[NUM_FLOORS][ROOMS_PER_FLOOR - 1],
                      char roomEntities[NUM_FLOORS][ROOMS_PER_FLOOR][MAX_ENTITIES_PER_ROOM],
                      int entityCounts[NUM_FLOORS][ROOMS_PER_FLOOR]){
-                    
-                     }
+                        for(int i=0; i<NUM_FLOORS; i++){
+                            for(int j=0; j<ROOMS_PER_FLOOR; j++){
+                                if(j<ROOMS_PER_FLOOR-1)
+                                    horizontalConn[i][j] = CONN_NONE;
+                                entityCounts[i][j] = 0;
+                                for(int k=0; k<MAX_ENTITIES_PER_ROOM; k++){
+                                    roomEntities[i][j][k] = ENT_NONE;
+                                }
+                            }
+                        }
+                        ifstream fin(filename);
+                        if(!(fin.is_open())){
+                            return false;
+                        }
+                        char line[MAX_LINE_LEN];
+
+                        while (fin.getline(line, MAX_LINE_LEN)){
+                            int len = 0;
+                            while (line[len] != '\0') 
+                                    len++;
+
+                            if (len > 0 && line[len - 1] == '\r')
+                                line[len - 1] = '\0';
+
+                            int labelPos[ROOMS_PER_FLOOR];
+                            int found = 0;
+                            int floorNum = 0;
+                            for (int i = 0; line[i] != '\0'; i++) {
+                                if(line[i] == 'F' && (line[i+1] >= '0' && line[i+1]<= '9')
+                                 && line[i+2] == '-' && line[i+3] == 'R' && line[i+4] >= '0'
+                                  && line[i+4]<= '9'){
+                                    floorNum = line[i + 1] - '0';
+                                    int roomNum = line[i + 4] - '0';
+                                    if (roomNum >= 1 && roomNum <= ROOMS_PER_FLOOR) {
+                                        labelPos[roomNum - 1] = i;
+                                        found++;
+                                    }
+                                }
+                            }
+                            if (found != ROOMS_PER_FLOOR) continue;
+                            if (floorNum < 1 || floorNum > NUM_FLOORS) continue;
+                            int f = floorNum - 1;
+
+                            for (int r = 0; r < ROOMS_PER_FLOOR - 1; r++) {
+                                char conn = CONN_NONE;
+                                for (int p = labelPos[r] + 5; p < labelPos[r + 1]; p++) {
+                                    if (line[p] != ' ') {
+                                        conn = line[p];
+                                        if(conn == 'L' && line[p+1] == '1' )
+                                            conn = CONN_NONE;
+                                        break;
+                                    }
+                                }
+                                horizontalConn[f][r] = conn;
+                            }
+
+                            char itemLine[MAX_LINE_LEN];
+                            if (!fin.getline(itemLine, MAX_LINE_LEN)) break;
+                             
+                            int itemLen = 0;
+                            while (itemLine[itemLen] != '\0')
+                             itemLen++;
+
+                            if (itemLen > 0 && itemLine[itemLen - 1] == '\r')
+                                itemLine[itemLen - 1] = '\0';
+
+                            int dividers = 0;
+                            for (int p = labelPos[0]; p < itemLen && dividers < ROOMS_PER_FLOOR; p++) {
+                                char c = itemLine[p];
+                                if (c == '|') { dividers++; continue; }
+                                if (c == ' ') continue;
+
+                                int room = 0;
+                                for (int r = 0; r < ROOMS_PER_FLOOR; r++) {
+                                    if (labelPos[r] <= p ) 
+                                        room = r;
+                                }
+
+                                if(entityCounts[f][room] < MAX_ENTITIES_PER_ROOM){
+                                    roomEntities[f][room][entityCounts[f][room]] = c;
+                                    entityCounts[f][room]++ ;
+                                }
+                            }
+
+                            if (floorNum == 1) break;
+
+                        }
+
+                        fin.close();
+
+                        if (entityCounts[0][3] < MAX_ENTITIES_PER_ROOM) {
+                              roomEntities[0][3][ entityCounts[0][3] ] = ENT_ENERGY_PACK;
+                            entityCounts[0][3]++;
+                        }
+                        return true;
+                        
+                    }
 
 bool loadInitialState(const char* filename,
                       int& playerFloor, int& playerRoom,
@@ -137,14 +232,14 @@ bool validateStartingRoom(int startFloor, int startRoom,
 
 
     char left = horizontalConn[startFloor - 1][startRoom-2];
-    if (left == 'D' || left == 'W') {
+    if (left == CONN_DOOR || left == CONN_WINDOW) {
         return true;
     }
 
 
     if (startRoom < ROOMS_PER_FLOOR) {
         char right = horizontalConn[startFloor - 1][startRoom-1];
-        if (right == 'D' || right == 'W') {
+        if (right == CONN_DOOR || right == CONN_WINDOW) {
             return true;
         }
     }
