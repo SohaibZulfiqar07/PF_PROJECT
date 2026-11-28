@@ -11,7 +11,9 @@ using namespace std;
 bool loadBuildingMap(const char* filename,
                      char horizontalConn[NUM_FLOORS][ROOMS_PER_FLOOR - 1],
                      char roomEntities[NUM_FLOORS][ROOMS_PER_FLOOR][MAX_ENTITIES_PER_ROOM],
-                     int entityCounts[NUM_FLOORS][ROOMS_PER_FLOOR]);
+                     int entityCounts[NUM_FLOORS][ROOMS_PER_FLOOR]){
+                    
+                     }
 
 bool loadInitialState(const char* filename,
                       int& playerFloor, int& playerRoom,
@@ -118,7 +120,38 @@ bool loadInitialState(const char* filename,
 }
 
 bool validateStartingRoom(int startFloor, int startRoom,
-                          const char horizontalConn[NUM_FLOORS][ROOMS_PER_FLOOR - 1]);
+                          const char horizontalConn[NUM_FLOORS][ROOMS_PER_FLOOR - 1]) {
+
+
+    if (startFloor < 1 || startFloor > NUM_FLOORS) {
+        return false;
+    }
+    if (startRoom < 1 || startRoom > ROOMS_PER_FLOOR) {
+        return false;
+    }
+
+
+    if (startRoom == 1) {
+        return true;
+    }
+
+
+    char left = horizontalConn[startFloor - 1][startRoom-2];
+    if (left == 'D' || left == 'W') {
+        return true;
+    }
+
+
+    if (startRoom < ROOMS_PER_FLOOR) {
+        char right = horizontalConn[startFloor - 1][startRoom-1];
+        if (right == 'D' || right == 'W') {
+            return true;
+        }
+    }
+
+
+    return false;
+}
 
 const char* getEntityName(char entitySymbol){
      switch (entitySymbol) {
